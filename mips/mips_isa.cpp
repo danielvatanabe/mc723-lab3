@@ -98,6 +98,37 @@ void ac_behavior(end)
 }
 
 
+//ATOMIC INSTRUCTIONS-----------------------------------------------------------------------
+
+int last_value;
+
+//!Instruction load-link
+//rs has mutex adress
+//rt = M[rs]
+void ac_behavior( ll )
+{
+  dbg_printf("ll r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
+  RB[rt] = last_value= DM.read(RB[rs]+ imm);
+  dbg_printf("Result = %#x\n", RB[rt]);
+};
+
+//!Instruction store-conditional behavior method.
+//rs has mutex adress
+void ac_behavior( sc )
+{
+	//if mutex is used intruction fail
+	int read = DM.read(RB[rs]+ imm);
+	if (read != last_value) RB[rt] = 0;
+	else RB[rt] = 1;
+  dbg_printf("sc r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
+  DM.write(RB[rs], RB[rt]);
+  dbg_printf("Result = %#x\n", RB[rt]);
+};
+
+
+//------------------------------------------------------------------------------------------
+
+
 //!Instruction lb behavior method.
 void ac_behavior( lb )
 {
