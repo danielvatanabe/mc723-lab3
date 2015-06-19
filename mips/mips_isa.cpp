@@ -25,7 +25,7 @@
 #include  "mips_bhv_macros.H"
 
 
-//If you want debug information for this model, uncomment next line
+//If you want debug information for this model, uncomment next line/
 //#define DEBUG_MODEL
 #include "ac_debug_model.H"
 
@@ -100,7 +100,7 @@ void ac_behavior(end)
 
 //ATOMIC INSTRUCTIONS-----------------------------------------------------------------------
 
-int last_value;
+int last_value = 0;
 
 //!Instruction load-link
 //rs has mutex adress
@@ -108,7 +108,7 @@ int last_value;
 void ac_behavior( ll )
 {
   dbg_printf("ll r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
-  RB[rt] = last_value= DM.read(RB[rs]+ imm);
+  RB[rt] = last_value = DM.read(RB[rs]+ imm);
   dbg_printf("Result = %#x\n", RB[rt]);
 };
 
@@ -117,11 +117,16 @@ void ac_behavior( ll )
 void ac_behavior( sc )
 {
 	//if mutex is used intruction fail
-	int read = DM.read(RB[rs]+ imm);
-	if (read != last_value) RB[rt] = 0;
-	else RB[rt] = 1;
+	int read = DM.read(RB[rt]+ imm);
+	//printf("sc: read=%d last_value=%d\n",read,last_value);
+	if (read != last_value) RB[rs] = 0;
+	else {
+		DM.write(RB[rt],1);
+		RB[rs] = 1;
+	}
+  //printf("rt = %#x\n", DM.read(RB[rt]));
   dbg_printf("sc r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
-  DM.write(RB[rs], RB[rt]);
+
   dbg_printf("Result = %#x\n", RB[rt]);
 };
 
