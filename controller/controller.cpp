@@ -1,5 +1,5 @@
 /**
- * @file      memory.cpp
+ * @file      controller.cpp
  * @author    Bruno de Carvalho Albertini
  *
  * @author    The ArchC Team
@@ -12,7 +12,7 @@
  * @version   0.1
  * @date      Sun, 02 Apr 2006 08:07:46 -0200
  *
- * @brief     Implements a ac_tlm memory.
+ * @brief     Implements a ac_tlm controller for multicore.
  *
  * @attention Copyright (C) 2002-2005 --- The ArchC Team
  *
@@ -34,43 +34,45 @@
 // SystemC includes
 // ArchC includes
 
-#include "bus.h"
+#include "controller.h"
+
+#define BASE_AD 5242879
 
 //////////////////////////////////////////////////////////////////////////////
 
 
 /// Constructor
-ac_tlm_bus::ac_tlm_bus(sc_module_name module_name):
-  sc_module(module_name),
-  target_export("iport"),
-  MEM_port("MEM_port", 5242880U), // This is the memory port, assigned for 5MB
-  CONT_port("CONT_port", 5242890U)
+ac_tlm_controller::ac_tlm_controller( sc_module_name module_name , mips *v_procs[], int k) :
+  sc_module( module_name ),
+  target_export("iport")
 {
-    /// Binds target_export to the memory
-    target_export(*this);
+    /// Binds target_export to the controller
+    target_export( *this );
 
+    /// Set processors
+    for(int i = 0; i < k; i++) procs[i] = v_procs[i];
+    num_procs = k;
 }
 
-/// Destructor
-ac_tlm_bus::~ac_tlm_bus() 
+/** Ativa proc
+  * @param a is the address that decides which proc should be activated
+  * @returns A TLM response packet with SUCCESS
+*/
+ac_tlm_rsp_status ac_tlm_controller::ativa_proc( uint32_t id )
 {
+  procs[id]->ISA.ResumeProcessor();
+  return SUCCESS;
 }
 
-/// This is the transport method. Everything should go through this file.
-/// To connect more components, you will need to have an if/then/else or a switch
-/// statement inside this method. Notice that ac_tlm_req has an address field.
-ac_tlm_rsp ac_tlm_bus::transport(const ac_tlm_req &request) 
+/** Desativa proc
+  * @param a is the address that decides which proc should be deactivated
+  * @returns A TLM response packet with SUCCESS
+*/
+ac_tlm_rsp_status ac_tlm_controller::desativa_proc( uint32_t id )
 {
-    ac_tlm_rsp response;
-    
-    if (request.addr >= 5242890U)
-      response = CONT_port->transport(request);
-    else
-      response = MEM_port->transport(request);
-
-    return response;
+  procs[id]->ISA.PauseProcessor();
+  return SUCCESS;
 }
-
 
 
 

@@ -1,44 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//typedef mutex int*;
-
-//return 1 when gets the lock
-int mutex_acquire(int *m) {
-
-	int lock;
-	int temp;
-
-	while (*m != 0) {
-		temp = 0;
-				 														//%0 ouput    %1 input
-		asm volatile ("ll %0, 0(%1)" : "=r" (temp) : "r" (m));
-																		//%0 output    %1 input
-		asm volatile ("sc %0, 0(%1)" : "=r" (lock) : "r" (m));
-
-		if (!temp && lock) {
-			//got lock
-			return 1;
-		} 
-		//wait a little bit until ask for mutex again
-		int i;
-		for (i = 0; i < 100; ++i); 
-	}
-	
-}
-
-int mutex_release(int* m) {
-	*m = 0;
-}
-
+int proc = 0;
 
 int main(int argc, char *argv[]){
   int i;
-  int m = 0;
-  for(i=0;i<10;i++) {
-  	mutex_acquire(&m);
-    printf("Hi from processor MIPS!\n");
-    //mutex_release(&m)
+  
+  // Ativar o periferico (controller) para os proximos processadores utilizando enderecos de memoria especiais
+  // Comando: ative o processador x, desligue o processador y.
+  // No boot inicial, ativar apenas um processador.
+  
+  // Variavel global indica quantas vezes cada processador passou por aqui
+  
+  printf("Hi from %d\n", proc);
+
+  unsigned int *cont_addr;
+  proc++;
+  cont_addr = 5242890U + proc;
+  // Ativa o proximo e desativa o atual
+  if (proc < 8) {
+      *cont_addr = 10000U;
+      cont_addr = 5242910U + proc - 1;
+      *cont_addr = 10000U;
+  } else {
+    // Ativa todos novamente
+    for (proc = 0; proc < 7; proc++) {
+        cont_addr = 5242890U + proc;
+         *cont_addr = 10000U;
+    }
   }
 
   exit(0); // To avoid cross-compiler exit routine
