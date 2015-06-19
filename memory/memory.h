@@ -106,6 +106,8 @@ public:
    * @param k Memory size in kilowords.
    *
    */
+   
+   // Removido um endereco para o controller
   ac_tlm_mem( sc_module_name module_name , int k = 5242880 );
 
   /**

@@ -12,41 +12,64 @@
  * http://www.lsc.ic.unicamp.br                       *
  ******************************************************/
  
-// Rodolfo editou aqui
-//
 const char *project_name="mips";
 const char *project_file="mips1.ac";
 const char *archc_version="2.0beta1";
 const char *archc_options="-abi -dy ";
 
 #include <systemc.h>
+#include <vector>
 #include "mips.H"
 #include "memory.h"
 #include "bus.h"
+#include "controller.h"
 
 int sc_main(int ac, char *av[])
 {
 
-  //!  ISA simulator
-  mips mips_proc1("mips");
+  //! ISA simulator - 8 cores!
+  mips *mips_proc[8];
+  char name[100];
+  int cx;
+  for (int i = 0; i < 8; ++i) {
+    cx = snprintf(name, 100, "mips-%d", i);
+    mips_proc[i] = new mips(name);
+  }
   //! Bus
   ac_tlm_bus bus("bus");
-// Memory
+  //! Memory
   ac_tlm_mem mem("mem");
+  //! Controller
+  ac_tlm_controller cont("cont", mips_proc, 8);
 
 #ifdef AC_DEBUG
   ac_trace("mips1_proc1.trace");
 #endif 
 
-  mips_proc1.DM_port(bus.target_export);
+  for (int i = 0; i < 8; ++i)
+    mips_proc[i]->DM_port(bus.target_export);
+  
   bus.MEM_port(mem.target_export);
+  bus.CONT_port(cont.target_export);
 
-  mips_proc1.init(ac, av);
+  for (int i = 0; i < 8; ++i) {
+    int ac_aux = ac;
+    std::vector<std::string> av_aux(av, av + ac);
+    mips_proc[i]->init(ac_aux, av);
+    for (int j = 0; j < ac; j++) {
+      strcpy(av[j], av_aux[j].c_str());
+    }
+  }
+  
   cerr << endl;
+
+  for (int i = 1; i < 8; i++) {
+    mips_proc[i]->ISA.PauseProcessor();
+  }
 
   sc_start();
 
-  mips_proc1.PrintStat();
+  mips_proc[0]->PrintStat();
   cerr << endl;
 
 #ifdef AC_STATS
@@ -58,5 +81,6 @@ int sc_main(int ac, char *av[])
   ac_close_trace();
 #endif 
 
-  return mips_proc1.ac_exit_status;
+  // Fica como?
+  return mips_proc[0]->ac_exit_status;
 }
