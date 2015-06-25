@@ -31,7 +31,7 @@ AC_ISA(mips){
   ac_format Type_J  = "%op:6 %addr:26";
 
   ac_instr<Type_I> ll, lb, lbu, lh, lhu, lw, lwl, lwr;
-  ac_instr<Type_I> sc, sb, sh, sw, swl, swr;
+  ac_instr<Type_I> sc, las, sb, sh, sw, swl, swr;
   ac_instr<Type_I> addi, addiu, slti, sltiu, andi, ori, xori, lui;
   ac_instr<Type_R> add, addu, sub, subu, slt, sltu;
   ac_instr<Type_R> instr_and, instr_or, instr_xor, instr_nor;
@@ -68,6 +68,12 @@ AC_ISA(mips){
 		sc.set_asm("sc %reg, (%reg)", rt, rs, imm=0);
 		sc.set_asm("sc %reg, %imm (%reg)", rt, imm, rs);
 		sc.set_decoder(op=0x38);
+
+		las.set_asm("las %reg, \%lo(%exp)(%reg)", rt, imm, rs);
+		las.set_asm("las %reg, (%reg)", rt, rs, imm=0);
+		las.set_asm("las %reg, %imm (%reg)", rt, imm, rs);
+		las.set_decoder(op=0x2C); //upcode of SDL
+
 
 
 //---------------------------------------------------

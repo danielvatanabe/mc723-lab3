@@ -134,6 +134,21 @@ void ac_behavior( sc )
 //------------------------------------------------------------------------------------------
 
 
+//OFFLOAD INSTRUCTION-------------------------------------------------------------------
+
+void ac_behavior( las )
+{
+	printf("entered las\n");
+  //printf("sw r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
+	int value = DM.read(RB[rs]+ imm);
+	printf("value = %d, RB[rt] = %d\n", value,RB[rt]);
+  DM.write(RB[rs] + imm, RB[rt] + value);
+  dbg_printf("Result = %#x\n", RB[rt]);
+};
+
+
+//------------------------------------------------------------------------------------------
+
 //!Instruction lb behavior method.
 void ac_behavior( lb )
 {
