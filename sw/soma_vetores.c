@@ -8,25 +8,9 @@ int proc = 0;
 int v1[MAXN], v2[MAXN];
 int tam;
 int m = 0;
+int m2 = 0;
 int res = 0;
-
-void mutex2_ac() {
-  do {
-    if (m == 0) {
-      m = 1;
-      return;
-    }
-    
-    // printf("---- %d\n", proc);  
-    int i;
-		for (i = 0; i < 10; ++i); 
-  } while(1);
-}
-
-void mutex2_rl() {
-  m = 0;
-  return;
-}
+int k = 0;
 
 // MUTEX methods:
 void mutex_acquire(int *m) {
@@ -63,7 +47,11 @@ void mutex_release(int* m) {
 // Soma de dois vetores em paralelo (8 cores)
 // O resultado eh guardado no primeiro vetor
 int main(int argc, char *argv[]) {
+  
+  mutex_acquire(&m2);
   proc++;
+  mutex_release(&m2);
+
   unsigned int *cont_addr;
   int i;
   
@@ -89,7 +77,7 @@ int main(int argc, char *argv[]) {
     
     // Ativa os outros cores para iniciar a soma em paralelo
     for (i = 1; i < NUM_CORES; i++) {
-        cont_addr = 5242890U + i;
+        cont_addr = (unsigned int *)(5242890U + i);
          *cont_addr = 10000U;
     }
   }
@@ -98,43 +86,26 @@ int main(int argc, char *argv[]) {
   int ini = 0;
   for (i = 0;i < proc-1; i++)
     ini = ini + (tam / NUM_CORES);
-  // ini = ini * (proc - 1);
   int fim = 0;
   for (i = 0;i < proc; i++)
     fim = fim + (tam / NUM_CORES);
   if (proc == NUM_CORES) fim += tam % NUM_CORES;
-  // int ini = 0, fim = tam;
   for (i = ini; i < fim; i++) {
-    v1[i] = v1[i] + v2[i];
+    // v1[i] = v1[i] + v2[i];
+    asm(" sdl %1, %0 " : "=m"(v1[i]) : "r"(v2[i]));
   }
 
   // Imprime resultados obtidos com o mutex
-  mutex2_ac();
-  // printf("Valores para [%d - %d]:\n", ini, fim-1);
+  mutex_acquire(&m);
+  printf("Valores para [%d - %d]:\n", ini, fim-1);
   for (i = ini; i < fim; i++) {
-  //  printf("%d ", v1[i]);
-    res += v1[i];
+    printf("%d ", v1[i]);
+    k++;
   }
-  // printf("\n\n");
-  mutex2_rl();
+  printf("\n\n");
+  mutex_release(&m);
   
-  /*
-  for (i = 0; i < 1000; i++);
-  
-  if (k == NUM_CORES) {
-    for (i = 0; i < tam; i++) {
-      printf("%d ", v1[i]);
-    }
-    printf("\n\n");
-    
-    for (i = NUM_CORES; i < 8; i++) {
-      cont_addr = 5242890U + i;
-      *cont_addr = 10000U;
-    }
-  }*/
-  
-  // printf("**%d\n",res);
-  exit(0); 
+  // exit(0); 
   return 0; 
 }
 

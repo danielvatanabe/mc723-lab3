@@ -138,10 +138,10 @@ void ac_behavior( sc )
 
 void ac_behavior( las )
 {
-	printf("entered las\n");
+	//printf("entered las\n");
   //printf("sw r%d, %d(r%d)\n", rt, imm & 0xFFFF, rs);
 	int value = DM.read(RB[rs]+ imm);
-	printf("value = %d, RB[rt] = %d\n", value,RB[rt]);
+	//printf("value = %d, RB[rt] = %d\n", value,RB[rt]);
   DM.write(RB[rs] + imm, RB[rt] + value);
   dbg_printf("Result = %#x\n", RB[rt]);
 };
